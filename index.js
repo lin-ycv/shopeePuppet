@@ -17,14 +17,7 @@ else
     start();
 
 async function start(user = null, pass = null) {
-    const browser = await pup.launch({
-        headless: false,
-        args: [`--window-size=1920,1080`],
-        defaultViewport: {
-            width: 1920,
-            height: 1080
-        }
-    });
+    const browser = await pup.launch();
     const page = await browser.newPage();
     await page.setUserAgent('Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36');
 
