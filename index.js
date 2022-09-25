@@ -17,7 +17,7 @@ else
     start();
 
 async function start(user = null, pass = null) {
-    const browser = await pup.launch();
+    const browser = await pup.launch(/*{headless: false}*/);
     const page = await browser.newPage();
     await page.setUserAgent('Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36');
 
@@ -92,6 +92,7 @@ async function start(user = null, pass = null) {
     }
     page.click("button[class^='pcmall-dailycheckin']");
     console.log('✔ check in -n- got coin');
+    await page.waitForTimeout(2000)
     await page.screenshot({ path: "result.png", fullPage: true });
     await browser.close();
     return;
