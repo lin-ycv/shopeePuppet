@@ -26,7 +26,44 @@ async function start(user = null, pass = null) {
             await loadCookie(page);
             await page.goto('https://shopee.tw/shopee-coins', { waitUntil: 'networkidle0' });
         } catch (e) { console.log(e) }
-    else if (user != null && pass != null) {
+    else 
+        await login(page,user,pass);
+
+    await page.waitForSelector("button[class^='pcmall-dailycheckin']");
+    let bText = await (await page.$("button[class^='pcmall-dailycheckin']")).evaluate(b => b.textContent);
+    console.log(bText);
+    if(bText.includes('快來登入'))
+    {
+        await login(page,user,pass);
+        await page.waitForSelector("button[class^='pcmall-dailycheckin']");
+        await saveCookie(page);
+        bText = await (await page.$("button[class^='pcmall-dailycheckin']")).evaluate(b => b.textContent);
+        console.log(bText);
+    }
+    if(bText.includes('明天'))
+    {
+        await page.screenshot({ path: "result.png", fullPage: true });
+        await browser.close();
+        return;
+    }
+    if(!bText.includes('今日'))
+    {
+        await page.screenshot({ path: "error.png", fullPage: true });
+        await browser.close();
+        throw "Something went wrong";
+    }
+    page.click("button[class^='pcmall-dailycheckin']");
+    console.log('✔ check in -n- got coin');
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: "result.png", fullPage: true });
+    await saveCookie(page);
+    await browser.close();
+    return;
+}
+
+//Login
+const login = async (page,user,pass) =>{
+    if (user != null && pass != null) {
         console.log("NO COOKIES - login")
         try {
             await page.goto("https://shopee.tw/buyer/login?next=https%3A%2F%2Fshopee.tw%2Fshopee-coins", { waitUntil: 'networkidle2' });
@@ -56,6 +93,7 @@ async function start(user = null, pass = null) {
                         if (page.url() != 'https://shopee.tw/verify/link') return;
                         else if ((i + 1) == 60) {
                             console.log("SMS link not clicked, can't login");
+                            throw "Couldn't Log-in";
                             await browser.close();
                             return;
                         }
@@ -79,23 +117,6 @@ async function start(user = null, pass = null) {
         await browser.close();
         return;
     }
-
-    await page.waitForSelector("button[class^='pcmall-dailycheckin']");
-    await saveCookie(page);
-    let bText = await (await page.$("button[class^='pcmall-dailycheckin']")).evaluate(b => b.textContent);
-    console.log(bText);
-    if(bText.includes('明天'))
-    {
-        await page.screenshot({ path: "result.png", fullPage: true });
-        await browser.close();
-        return;
-    }
-    page.click("button[class^='pcmall-dailycheckin']");
-    console.log('✔ check in -n- got coin');
-    await page.waitForTimeout(2000)
-    await page.screenshot({ path: "result.png", fullPage: true });
-    await browser.close();
-    return;
 }
 
 //save cookie function
