@@ -3,7 +3,7 @@ name: shopee
 on:
   workflow_dispatch:
   schedule:
-    - cron: "8 8 * * *"
+    - cron: "8 20 * * *"
 
 jobs:
   build:
@@ -22,6 +22,18 @@ jobs:
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+
+      - name: Check for Error screenshots
+        id: check_files1
+        uses: andstor/file-existence-action@v1.1.0
+        with:
+          files: "error.png"
+
+      - name: ERROR screenshot found
+        if: |
+          steps.check_files1.outputs.files_exists == 'true'
+        run: |
+          rm error.png
 
       - name: Decrypt Cookies
         env:
@@ -43,28 +55,30 @@ jobs:
         uses: andstor/file-existence-action@v1.1.0
         with:
           files: "cookies.json"
-          
-      - name: cookies
-        env:
-          PHRASE: ${{ secrets.PHRASE }}
-        if: steps.check_files2.outputs.files_exists == 'true'
-        run: |
-          gpg --passphrase "$PHRASE" --cipher-algo AES256 --batch --yes --symmetric cookies.json
-          git add .
-          git commit -m encryption
-          git push
 
       - name: Check for Error screenshots
         id: check_files3
         uses: andstor/file-existence-action@v1.1.0
         with:
           files: "error.png"
-          
+
       - name: ERROR screenshot
         if: |
-          steps.check_files3.outputs.files_exists == 'true' &&
-          steps.check_files2.outputs.files_exists != 'true'
+          steps.check_files3.outputs.files_exists == 'true'
         run: |
           git add .
           git commit -m ERROR
+          git push
+          exit 1
+          
+      - name: cookies
+        env:
+          PHRASE: ${{ secrets.PHRASE }}
+        if:  |
+          steps.check_files2.outputs.files_exists == 'true' &&
+          steps.check_files3.outputs.files_exists != 'true'
+        run: |
+          gpg --passphrase "$PHRASE" --cipher-algo AES256 --batch --yes --symmetric cookies.json
+          git add .
+          git commit -m success
           git push

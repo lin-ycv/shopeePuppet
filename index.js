@@ -27,19 +27,20 @@ async function start(user = null, pass = null) {
             await page.goto('https://shopee.tw/shopee-coins', { waitUntil: 'networkidle0' });
         } catch (e) { console.log(e) }
     else 
-        await login(page,user,pass);
+        await login(browser,page,user,pass);
 
     await page.waitForSelector("button[class^='pcmall-dailycheckin']");
     let bText = await (await page.$("button[class^='pcmall-dailycheckin']")).evaluate(b => b.textContent);
     console.log(bText);
     if(bText.includes('快來登入'))
     {
-        await login(page,user,pass);
+        await login(browser,page,user,pass);
         await page.waitForSelector("button[class^='pcmall-dailycheckin']");
         await saveCookie(page);
         bText = await (await page.$("button[class^='pcmall-dailycheckin']")).evaluate(b => b.textContent);
         console.log(bText);
     }
+    await saveCookie(page);
     if(bText.includes('明天'))
     {
         await page.screenshot({ path: "result.png", fullPage: true });
@@ -56,13 +57,12 @@ async function start(user = null, pass = null) {
     console.log('✔ check in -n- got coin');
     await page.waitForTimeout(2000);
     await page.screenshot({ path: "result.png", fullPage: true });
-    await saveCookie(page);
     await browser.close();
     return;
 }
 
 //Login
-const login = async (page,user,pass) =>{
+const login = async (browser,page,user,pass) =>{
     if (user != null && pass != null) {
         console.log("NO COOKIES - login")
         try {
@@ -80,7 +80,8 @@ const login = async (page,user,pass) =>{
                 }),
             ]);
             await page.waitForTimeout(5000)
-            if (page.url() != 'https://shopee.tw/shopee-coins') {
+            console.log(page.url());
+            if (!page.url().includes('https://shopee.tw/shopee-coins')) {
                 const sms = "//div[contains(string(),'使用連結驗證')]";
                 await page.waitForXPath(sms).then(async () => {
                     console.log("SMS login");
