@@ -47,7 +47,7 @@ async function start(user = null, pass = null) {
         await browser.close();
         return;
     }
-    if(!bText.includes('今日'))
+    if(!bText.includes('完成簽到'))
     {
         await page.screenshot({ path: "error.png", fullPage: true });
         await browser.close();
